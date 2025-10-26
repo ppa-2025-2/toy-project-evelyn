@@ -1,4 +1,4 @@
-package com.example.demo.service;
+package com.example.demo.domain;
 import com.example.demo.repository.entity.Island;
 import com.example.demo.repository.entity.Workstation;
 import com.example.demo.domain.exceptions.NotFoundException;
@@ -11,17 +11,17 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 @Service
-public class IslandService {
+public class IslandBusiness {
 
     private UserRepository userRepository;
     private IslandRepository islandRepository;
 
-    public IslandService(UserRepository userRepository, IslandRepository islandRepository) {
+    public IslandBusiness(UserRepository userRepository, IslandRepository islandRepository) {
         this.userRepository = userRepository;
         this.islandRepository = islandRepository;
     }
 
-     public void alocarWorkstationDisponivel(@NonNull Integer userId) {
+     public Workstation alocarWorkstationDisponivel(@NonNull Integer userId) {
         
         final var user = userRepository.findById(userId)
             .orElseThrow(() -> new NotFoundException());
@@ -38,7 +38,7 @@ public class IslandService {
         // island 3 rectangular 1/6
 
         // busca ilhas começando por uma ws livre, depois duas, ...
-        Island freeIsland = islands.getFirst(); 
+        Island freeIsland = islands.getFirst();
         for (int slots = 1; slots < Island.Disposition.CIRCULAR.getPlacements(); slots++) {
             final int positions = slots;
             var possibleIsland = islands.stream()
@@ -60,5 +60,6 @@ public class IslandService {
             .ifPresent(ws -> ws.setUser(user));
 
         islandRepository.save(freeIsland);
+        return null;
     }
 }
