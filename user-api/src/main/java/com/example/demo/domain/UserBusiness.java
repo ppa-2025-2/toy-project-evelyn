@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 
+import com.example.demo.controller.dto.NewTicketDTO;
 import com.example.demo.controller.dto.NewUserDTO;
 import com.example.demo.domain.stereotype.Business;
 import com.example.demo.repository.RoleRepository;
@@ -14,6 +15,8 @@ import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.entity.Profile;
 import com.example.demo.repository.entity.Role;
 import com.example.demo.repository.entity.User;
+
+import org.springframework.web.client.RestTemplate;
 
 import jakarta.validation.Valid;
 
@@ -24,59 +27,57 @@ import jakarta.validation.Valid;
 @Validated
 public class UserBusiness {
 
-    private final BCryptPasswordEncoder passwordEncoder = 
-        new BCryptPasswordEncoder();
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final Set<String> defaultRoles;
 
     public UserBusiness(
-        UserRepository userRepository,
-        RoleRepository roleRepository,
-        @Value("${app.user.default.roles}")
-        Set<String> defaultRoles
-    ) {
+            UserRepository userRepository,
+            RoleRepository roleRepository,
+            @Value("${app.user.default.roles}") Set<String> defaultRoles) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.defaultRoles = defaultRoles;
     }
-    
+
     // cadastrar usuário é um use case (é uma feature)
     public void cadastrarUsuario(@Valid NewUserDTO newUser) {
         // if (newUser.email() == null || newUser.password() == null) {
-        //     throw new IllegalArgumentException("Email e senha são obrigatórios");
+        // throw new IllegalArgumentException("Email e senha são obrigatórios");
         // }
 
         // if (newUser.email().isEmpty() || newUser.password().isEmpty()) {
-        //     throw new IllegalArgumentException("Email e senha não podem estar vazios");
+        // throw new IllegalArgumentException("Email e senha não podem estar vazios");
         // }
 
         // if (!newUser.email().matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
-        //     throw new IllegalArgumentException("Email não é válido");
+        // throw new IllegalArgumentException("Email não é válido");
         // }
 
         if (!newUser.password().matches("^(?=.*[0-9])(?=.*[a-zA-Z]).{8,}$")) {
-            throw new IllegalArgumentException("A senha deve ter pelo menos 8 caracteres e conter pelo menos uma letra e um número");
+            throw new IllegalArgumentException(
+                    "A senha deve ter pelo menos 8 caracteres e conter pelo menos uma letra e um número");
         }
-        
+
         userRepository.findByEmail(newUser.email())
-            .ifPresent(user -> {
-                throw new IllegalArgumentException("Usuário com o email " + newUser.email() + " já existe");
-            });
+                .ifPresent(user -> {
+                    throw new IllegalArgumentException("Usuário com o email " + newUser.email() + " já existe");
+                });
 
         userRepository.findByHandle(newUser.handle())
-            .ifPresent(user -> {
-                throw new IllegalArgumentException("Usuário com o nome " + newUser.handle() + " já existe");
-            });
+                .ifPresent(user -> {
+                    throw new IllegalArgumentException("Usuário com o nome " + newUser.handle() + " já existe");
+                });
 
         User user = new User();
-        
+
         user.setEmail(newUser.email());
         user.setHandle(newUser.handle() != null ? newUser.handle() : generateHandle(newUser.email()));
         user.setPassword(passwordEncoder.encode(newUser.password()));
-        
+
         Set<Role> roles = new HashSet<>();
-        
+
         roles.addAll(roleRepository.findByNameIn(defaultRoles));
 
         Set<Role> additionalRoles = roleRepository.findByNameIn(newUser.roles());
@@ -91,7 +92,7 @@ public class UserBusiness {
         user.setRoles(roles);
 
         Profile profile = new Profile();
-        
+
         profile.setName(newUser.name());
         profile.setCompany(newUser.company());
         profile.setType(newUser.type() != null ? newUser.type() : Profile.AccountType.FREE);
@@ -99,7 +100,16 @@ public class UserBusiness {
         profile.setUser(user);
         user.setProfile(profile);
 
-        userRepository.save(user); 
+        userRepository.save(user);
+
+        Integer creatorId = user.getId();
+        System.out.println("vou enviar req");
+        // criar ticket de onboarding
+        cadastrarTicket(creatorId, 1, "Onboarding", "Realizar onboarding",
+                "Configurar acesso, credenciais e apresentação da equipe", "Remoto");
+        // criar ticket para alocar estação de trabalho
+        cadastrarTicket(creatorId, 1, "Alocar estação", "Alocar estação de trabalho",
+                "Provisionar estação, instalar softwares e configurar rede", "Escritório");
     }
 
     private String generateHandle(String email) {
@@ -110,5 +120,20 @@ public class UserBusiness {
             handle = parts[0] + i++;
         }
         return handle;
+    }
+
+    private void cadastrarTicket(Integer creator, Integer destinatary, String item, String to_do, String details,
+            String place) {
+
+        try {
+            NewTicketDTO ticket = new NewTicketDTO(creator, destinatary, item, to_do, details, place);
+
+            RestTemplate rest = new RestTemplate();
+            String ticketUrl = "http://localhost:8081/api/v1/tickets";
+            rest.postForEntity(ticketUrl, ticket, Void.class);
+
+        } catch (Exception e) {
+            System.out.println("Erro ao cadastrar ticket: " + e.getMessage());
+        }
     }
 }

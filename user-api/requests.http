@@ -12,10 +12,27 @@ Host: localhost:8080
 Content-Type: application/json
 
 {
-    "email": "batata@potato.com",
+    "email": "evelyn@gmail.com",
     "password": "1234RT56",
-    "handle": "papas",
-    "name": "Kartofel",
+    "handle": "evelyn",
+    "name": "Evelyn",
+    "roles": [
+        "ROLE_USER"
+    ],
+    "company": "potato inc"
+}
+
+### Create a new User
+
+POST /api/v1/users HTTP/1.1
+Host: localhost:8080
+Content-Type: application/json
+
+{
+    "email": "bruno@gmail.com",
+    "password": "abc12356",
+    "handle": "bruno",
+    "name": "bruno",
     "roles": [
         "ROLE_USER"
     ],
@@ -50,6 +67,21 @@ Content-Type: application/json
     "item": "pc",
     "to_do": "consertar",
     "details": "quero um pc bom",
+    "place": "if"
+}
+
+### Post ticket
+
+POST /api/v1/tickets HTTP/1.1
+Host: localhost:8080
+Content-Type: application/json
+
+{
+    "creator": 2,
+    "destinatary": 2,
+    "item": "computador",
+    "to_do": "atualizar",
+    "details": "atualizar o sistema",
     "place": "if"
 }
 
