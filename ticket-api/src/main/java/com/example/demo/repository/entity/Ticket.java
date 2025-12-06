@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -14,48 +15,21 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-// Banco de Dados -> Entidade
-// POO: Programação Orientada a Objetos (POO)
-// Entidade: objeto que tem IDENTIDADE (muda com o tempo
-// O/R M: Object/Relational Mapping
-// Mapeamento Objeto/Relacional
-// Problema da Diferença de Representação
-// Impedance Mismatch (diferença de impedância)
-// Entity: DDD (Domain-Driven Design)
 
-// <<entidade>> -> stereotype -> estereótipo
-// Entity -> Metadata
-@Entity // anotação/annotation
+@Entity 
 @Table(name = "tickets")
 public class Ticket {
-
-    // creator VARCHAR(255),
-    // destinatary VARCHAR(255),
-    // technician VARCHAR(255),
-    // item VARCHAR(255),
-    // to_do VARCHAR(255),
-    // details VARCHAR(255),
-    // place VARCHAR(255),
-    // created_at TIMESTAMP DEFAULT NOW(),
-    // updated_at TIMESTAMP,
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne
-    @JoinColumn(name = "creator")
-    private User creator;
+    private Integer creator;
 
-    @ManyToOne
-    @JoinColumn(name = "destinatary")
-    private User destinatary;
+    private Integer destinatary;
 
-    @ManyToOne
-    @JoinColumn(name = "technician")
-    private User technician;
+    private Integer technician;
 
     @Column(nullable = false, length = 255)
     private String item;
@@ -78,7 +52,7 @@ public class Ticket {
         joinColumns = @JoinColumn(name = "ticket_id", referencedColumnName = "ID"),
         inverseJoinColumns = @JoinColumn(name = "observer_id", referencedColumnName = "ID")
     )
-    private Set<User> observers = new HashSet<>();
+    private Set<TicketObserver> observers = new HashSet<>();
 
     @Column(nullable = true)
     private Timestamp created_at = Timestamp.valueOf(LocalDateTime.now());
@@ -95,27 +69,27 @@ public class Ticket {
         this.id = id;
     }
 
-    public User getCreator() {
+    public Integer getCreator() {
         return creator;
     }
 
-    public void setCreator(User creator) {
+    public void setCreator(Integer creator) {
         this.creator = creator;
     }
 
-    public User getDestinatary() {
+    public Integer getDestinatary() {
         return destinatary;
     }
 
-    public void setDestinatary(User destinatary) {
+    public void setDestinatary(Integer destinatary) {
         this.destinatary = destinatary;
     }
 
-    public User getTechnician() {
+    public Integer getTechnician() {
         return technician;
     }
 
-    public void setTechnician(User technician) {
+    public void setTechnician(Integer technician) {
         this.technician = technician;
     }
 
@@ -127,11 +101,11 @@ public class Ticket {
         this.item = item;
     }
 
-    public Set<User> getObservers() {
+    public Set<TicketObserver> getObservers() {
         return observers;
     }
 
-    public void setObservers(Set<User> observers) {
+    public void setObservers(Set<TicketObserver> observers) {
         this.observers = observers;
     }
 

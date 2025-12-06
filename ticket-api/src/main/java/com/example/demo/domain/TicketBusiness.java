@@ -6,9 +6,7 @@ import com.example.demo.controller.dto.NewTicketDTO;
 import com.example.demo.controller.dto.UpdateTicketDTO;
 import com.example.demo.domain.stereotype.Business;
 import com.example.demo.repository.TicketRepository;
-import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.entity.Ticket;
-import com.example.demo.repository.entity.User;
 
 import jakarta.validation.Valid;
 
@@ -20,26 +18,18 @@ import jakarta.validation.Valid;
 public class TicketBusiness {
 
     private final TicketRepository ticketRepository;
-    private final UserRepository userRepository;
-
     public TicketBusiness(
-        TicketRepository ticketRepository,
-        UserRepository userRepository
+        TicketRepository ticketRepository
     ) {
         this.ticketRepository = ticketRepository;
-        this.userRepository = userRepository;
     }
     
 
     public void createTicket(@Valid NewTicketDTO newTicket) {
-
-        User creator = userRepository.findById(newTicket.creator());
-        User destinatary = userRepository.findById(newTicket.destinatary());
-
         Ticket ticket = new Ticket();
         
-        ticket.setCreator(creator);
-        ticket.setDestinatary(destinatary);
+        ticket.setCreator(newTicket.creator());
+        ticket.setDestinatary(newTicket.destinatary());
         ticket.setItem(newTicket.item());
         ticket.setTo_do(newTicket.to_do());
         ticket.setDetails(newTicket.details());
