@@ -5,78 +5,73 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import com.example.demo.controller.dto.NewUserDTO;
-import com.example.demo.domain.stereotype.Business;
+import com.example.demo.repository.IslandRepository;
 import com.example.demo.repository.RoleRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.entity.Profile;
 import com.example.demo.repository.entity.Role;
 import com.example.demo.repository.entity.User;
 
+import jakarta.persistence.EntityManager;
 import jakarta.validation.Valid;
 
 // Spring -> possui um container de Injeção de Dependências
 
 // estereótipo
-@Business // Domain, DomainService, Service, UseCase
+@Service // Domain, DomainService, Service, UseCase
 @Validated
-public class UserBusiness {
+public class UserService {
 
-    private final BCryptPasswordEncoder passwordEncoder = 
-        new BCryptPasswordEncoder();
+    @SuppressWarnings("unused")
+    private final EntityManager em;
+
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final Set<String> defaultRoles;
 
-    public UserBusiness(
-        UserRepository userRepository,
-        RoleRepository roleRepository,
-        @Value("${app.user.default.roles}")
-        Set<String> defaultRoles
-    ) {
+    public UserService(
+            IslandRepository islandRepository,
+            EntityManager em,
+            UserRepository userRepository,
+            RoleRepository roleRepository,
+            @Value("${app.user.default.roles}") Set<String> defaultRoles) {
+        this.em = em;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.defaultRoles = defaultRoles;
     }
-    
+
     // cadastrar usuário é um use case (é uma feature)
     public void cadastrarUsuario(@Valid NewUserDTO newUser) {
-        // if (newUser.email() == null || newUser.password() == null) {
-        //     throw new IllegalArgumentException("Email e senha são obrigatórios");
-        // }
-
-        // if (newUser.email().isEmpty() || newUser.password().isEmpty()) {
-        //     throw new IllegalArgumentException("Email e senha não podem estar vazios");
-        // }
-
-        // if (!newUser.email().matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
-        //     throw new IllegalArgumentException("Email não é válido");
-        // }
 
         if (!newUser.password().matches("^(?=.*[0-9])(?=.*[a-zA-Z]).{8,}$")) {
-            throw new IllegalArgumentException("A senha deve ter pelo menos 8 caracteres e conter pelo menos uma letra e um número");
+            throw new IllegalArgumentException(
+                    "A senha deve ter pelo menos 8 caracteres e conter pelo menos uma letra e um número");
         }
-        
+
         userRepository.findByEmail(newUser.email())
-            .ifPresent(user -> {
-                throw new IllegalArgumentException("Usuário com o email " + newUser.email() + " já existe");
-            });
+                .ifPresent(user -> {
+                    throw new IllegalArgumentException("Usuário com o email " + newUser.email() + " já existe");
+                });
 
         userRepository.findByHandle(newUser.handle())
-            .ifPresent(user -> {
-                throw new IllegalArgumentException("Usuário com o nome " + newUser.handle() + " já existe");
-            });
+                .ifPresent(user -> {
+                    throw new IllegalArgumentException("Usuário com o nome " + newUser.handle() + " já existe");
+                });
 
         User user = new User();
-        
+
         user.setEmail(newUser.email());
         user.setHandle(newUser.handle() != null ? newUser.handle() : generateHandle(newUser.email()));
         user.setPassword(passwordEncoder.encode(newUser.password()));
-        
+
         Set<Role> roles = new HashSet<>();
-        
+
         roles.addAll(roleRepository.findByNameIn(defaultRoles));
 
         Set<Role> additionalRoles = roleRepository.findByNameIn(newUser.roles());
@@ -91,7 +86,7 @@ public class UserBusiness {
         user.setRoles(roles);
 
         Profile profile = new Profile();
-        
+
         profile.setName(newUser.name());
         profile.setCompany(newUser.company());
         profile.setType(newUser.type() != null ? newUser.type() : Profile.AccountType.FREE);
@@ -99,7 +94,13 @@ public class UserBusiness {
         profile.setUser(user);
         user.setProfile(profile);
 
-        userRepository.save(user); 
+        userRepository.save(user);
+
+        // Unit of Work
+        // se não houvesse repositório, usaríamos o EntityManager
+        // em.persist(user);
+        // em.flush();
+
     }
 
     private String generateHandle(String email) {

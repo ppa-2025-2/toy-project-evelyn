@@ -1,3 +1,5 @@
+DELETE FROM workstations;
+DELETE FROM islands;
 DELETE FROM users;
 DELETE FROM roles;
 

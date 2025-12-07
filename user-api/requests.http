@@ -38,33 +38,36 @@ Content-Type: application/json
     "company": "potato inc"
 }
 
-### Post ticket
+### Get all islands
 
-POST /api/v1/tickets HTTP/1.1
-Host: localhost:8080
-Content-Type: application/json
-
-{
-    "creator": 2,
-    "destinatary": 2,
-    "item": "pc",
-    "to_do": "consertar",
-    "details": "quero um pc bom",
-    "place": "if"
-}
-
-### Get all tickets
-
-GET /api/v1/tickets HTTP/1.1
+GET /api/v1/islands HTTP/1.1
 Host: localhost:8080
 Accept: application/json
 
-### Patch ticket
+### Create a new Island
 
-PATCH /api/v1/tickets/2 HTTP/1.1
+POST /api/v1/islands HTTP/1.1
 Host: localhost:8080
 Content-Type: application/json
 
 {
-    "status": "Andamento"
+    "description": "Island A",
+    "disposition": "RECTANGLE",
+    "workstations": [
+        {
+            "specs": "Intel i7, 16GB RAM, 512GB SSD"
+        },
+        {
+            "specs": "Intel i5, 8GB RAM, 256GB SSD"
+        }
+    ]
+}
+
+### Allocate a workstation to a user
+PATCH /api/v1/islands/allocate HTTP/1.1
+Host: localhost:8080
+Content-Type: application/json
+
+{
+    "userId": 5
 }

@@ -27,27 +27,24 @@ CREATE TABLE IF NOT EXISTS profiles (
     FOREIGN KEY (id) REFERENCES users(id)
 );
 
-CREATE TABLE IF NOT EXISTS tickets (
-    id              INTEGER      PRIMARY KEY AUTOINCREMENT,
-    creator         VARCHAR(255),
-    destinatary     VARCHAR(255),
-    technician      VARCHAR(255),
-    item            VARCHAR(255),
-    to_do           VARCHAR(255),
-    details         VARCHAR(255),
-    place           VARCHAR(255),
-    status          VARCHAR(255) DEFAULT 'ANALISE',
-    created_at      TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP,
-    FOREIGN KEY (creator)     REFERENCES users(id),
-    FOREIGN KEY (destinatary) REFERENCES users(id),
-    FOREIGN KEY (technician)  REFERENCES users(id)
+DROP TABLE IF EXISTS islands;
+
+-- 2:PAIR, 3:TRIANGLE, 4:SQUARE, 6:RECTANGULAR, 8: CIRCULAR
+CREATE TABLE IF NOT EXISTS islands (
+    id          INTEGER     NOT NULL PRIMARY KEY AUTOINCREMENT,
+    disposition VARCHAR(20) NOT NULL,
+    content     TEXT        NOT NULL,
+    created_at  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS ticket_observers (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    ticket_id INTEGER,
-    observer_id INTEGER,
-    FOREIGN KEY (ticket_id) REFERENCES tickets(id),
-    FOREIGN KEY (observer_id) REFERENCES users(id)
+DROP TABLE IF EXISTS workstations;
+
+CREATE TABLE IF NOT EXISTS workstations (
+    id          VARCHAR(10) NOT NULL PRIMARY KEY,
+    island_id   INTEGER     NOT NULL REFERENCES islands(id),
+    user_id     INTEGER         NULL REFERENCES users(id),
+    specs       TEXT        NOT NULL,
+    created_at  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
